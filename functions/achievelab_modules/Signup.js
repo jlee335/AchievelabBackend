@@ -1,0 +1,55 @@
+// const {getAuth} = require("firebase-admin/auth");
+
+
+const { getFirestore } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
+
+async function handleSignUp(email, password, name) {
+    getAuth()
+        .createUser({
+            email: email,
+            emailVerified: false,
+            phoneNumber: '+11234567890',
+            password: password,
+            displayName: name,
+            disabled: false,
+        })
+        .then((userRecord) => {
+            // See the UserRecord reference doc for the contents of userRecord.
+            console.log('Successfully created new user:', userRecord.uid);
+
+            getFirestore().collection('users').doc(name).set({
+                name: name,
+                social_credit: 100,
+                team_refs: [],
+                deposits: {},
+            })
+                .then(() => {
+                    console.log(`new user ${name} is written`)
+                })
+                .catch(() => {
+                    console.error("Error adding document")
+                })
+        })
+        .catch((error) => {
+            console.log('Error creating new user:', error);
+        });
+
+}
+
+// Sign in function
+async function handleSignIn(email, password) {
+    try {
+        // const userCredential = await admin.auth().signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await getAuth().signInWithEmailAndPassword(email, password);
+        // Signed in
+        const user = userCredential.user;
+        console.log('User signed in:', user);
+    } catch (error) {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error('Error signing in:', errorCode, errorMessage);
+    }
+}
+
+module.exports = { handleSignUp, handleSignIn };
