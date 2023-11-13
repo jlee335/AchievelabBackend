@@ -1,5 +1,5 @@
 const { getFirestore, doc, collection, getDoc, updateDoc,
-    getDocs, query, where, orderBy } = require("firebase/firestore");
+    getDocs, query, where, orderBy, limit } = require("firebase/firestore");
 const admin = require("firebase-admin");
 
 const db = getFirestore();
@@ -39,7 +39,7 @@ async function getTeamRanking(teamName) {
         let ranking = 0;
 
         // Iterate through the query results to find the team's ranking
-        for (const teamDoc of querySnapshot.docs){
+        for (const teamDoc of querySnapshot.docs) {
             ranking++;
             if (teamDoc.id == teamName) {
                 return ranking; // Stop the iteration when the team is found

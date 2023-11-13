@@ -104,22 +104,40 @@ exports.addProgressMapping = onRequest((request, response) => {
     const teamName = request.body.teamName;
     const result = request.body.result; // 'success' or 'failure'
 
-    addProgressMapping(userName, date, teamName, result);
-    response.json({ add_progress: "success" });
+    // addProgressMapping(userName, date, teamName, result);
+    // response.json({ add_progress: "success" });
+    addProgressMapping(userName, date, teamName, result).then((result) => {
+        response.json({ add_progress: result });
+    }).catch((error) => {
+        console.error(error);
+    });
 })
 
 exports.ranking = onRequest((request, response) => {
     const teamName = request.body.teamName;
-    response.json({ in_team_ranking: ranking(teamName) });
+
+    ranking(teamName).then((result) => {
+        response.json({ in_team_ranking: result });
+    }).catch((error) => {
+        console.error(error);
+    });
 })
 
 exports.getTeamRanking = onRequest((request, response) => {
     const teamName = request.body.teamName;
-    response.json({ team_ranking: getTeamRanking(teamName) });
+    getTeamRanking(teamName).then((result) => {
+        response.json({ team_ranking: result });
+    }).catch((error) => {
+        console.error(error);
+    });
 })
 
 exports.getTopNRanking = onRequest((request, response) => {
     const numTeams = request.body.numTeams;
-    response.json({ topNranking: getTopNRanking(numTeams) });
+    getTopNRanking(numTeams).then((result) => {
+        response.json({ topNranking: result });
+    }).catch((error) => {
+        console.error(error);
+    });
 })
 
