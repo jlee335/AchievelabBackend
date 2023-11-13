@@ -2,7 +2,7 @@
 
 
 const { getFirestore } = require("firebase-admin/firestore");
-const { getAuth } = require("firebase-admin/auth");
+const { getAuth, signInWithEmailAndPassword } = require("firebase-admin/auth");
 
 async function handleSignUp(email, password, name) {
     getAuth()
@@ -41,7 +41,8 @@ async function handleSignUp(email, password, name) {
 async function handleSignIn(email, password) {
     try {
         // const userCredential = await admin.auth().signInWithEmailAndPassword(auth, email, password);
-        const userCredential = await getAuth().signInWithEmailAndPassword(email, password);
+        // const userCredential = await getAuth().signInWithEmailAndPassword(email, password);
+        const userCredential = await signInWithEmailAndPassword(getAuth(), email, password);
         // Signed in
         const user = userCredential.user;
         console.log('User signed in:', user);

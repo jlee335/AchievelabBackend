@@ -30,44 +30,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 const auth = getAuth();
-async function signUp(email, password, name) {
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        const userRef = doc(db, 'users', name)
-        setDoc(userRef, {
-            name: name,
-            social_credit: 100,
-            team_refs: [],
-            deposits: {},
-        })
-        .then(() => {
-            console.log(`new user ${name} is written`)
-        })
-        .catch(() => {
-            console.error("Error adding document")
-        })
-        setTier(name);
-    } catch (error) {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log('Error signing up:', errorCode, errorMessage);
-    }
-}
 
-// Sign in function
-async function signIn(email, password) {
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        // Signed in
-        const user = userCredential.user;
-        console.log('User signed in:', user);
-    } catch (error) {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error('Error signing in:', errorCode, errorMessage);
-    }
-}
 
 const userTeams = async (teamRefs) => {
     console.log(`       teams:`);
