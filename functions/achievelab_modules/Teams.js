@@ -1,118 +1,95 @@
+/* eslint-disable require-jsdoc */
 // const {getAuth} = require("firebase-admin/auth");
 
 // const { getFirestore, doc, collection, getDocs, getDoc, setDoc, addDoc,
 //     updateDoc, increment, arrayUnion, query, where,
 //     orderBy, limit } = require("firebase-admin/firestore");
 
-const { getFirestore, doc, collection, getDocs, getDoc, setDoc, addDoc,
-    updateDoc, increment, arrayUnion, query, where,
-    orderBy, limit } = require("firebase/firestore");
+const {getFirestore, doc, collection, getDoc, setDoc,
+  updateDoc, arrayUnion} = require("firebase/firestore");
+
+const {setTier} = require("./SetTier");
 
 const db = getFirestore();
 
-async function setTier(userName) {
-    const userRef = doc(collection(db, 'users'), userName);
-    const userDoc = await getDoc(userRef);
-    if (userDoc.exists()){
-        let score = userDoc.data().social_credit;
-        for (const [team, deposit] of Object.entries(userDoc.data().deposits)) {
-            score += deposit;
-        }
-        let tier;
-        if (score <= 100) tier = 'Iron';
-        else if (score <= 200) tier = 'Bronze';
-        else if (score <= 400) tier = 'Silver';
-        else if (score <= 600) tier = 'Gold';
-        else if (score <= 800) tier = 'Platinum';
-        else if (score <= 1000) tier = 'Emerald';
-        else if (score <= 1200) tier = 'Diamond';
-        else if (score <= 1400) tier = 'Master';
-        else if (score <= 1600) tier = 'GrandMaster';
-        else tier = 'Challenger';
-        await updateDoc(userRef, { tier: tier });;
-    }
-    else {
-        console.error(`no user named ${userName}`)
-    }
-}
 
-async function newTeam(userName, teamName, rules, description, entry_deposit = 100) {
-    const teamRef = doc(db, 'teams', teamName);
-    const userRef = doc(db, 'users', userName);
-    const teamDoc = await getDoc(teamRef);
-    const userDoc = await getDoc(userRef);
+async function newTeam(userName, teamName, rules, description
+    , entryDeposit = 100) {
+  const teamRef = doc(db, "teams", teamName);
+  const userRef = doc(db, "users", userName);
+  const teamDoc = await getDoc(teamRef);
+  const userDoc = await getDoc(userRef);
 
-    if (teamDoc.exists()) {
-        console.log(`team ${teamName} already exists`);
+  if (teamDoc.exists()) {
+    console.log(`team ${teamName} already exists`);
+  } else {
+    const currentSocialCredit = userDoc.data().social_credit;
+    if (currentSocialCredit >= entryDeposit) {
+      await updateDoc(userRef, {
+        team_refs: arrayUnion(doc(collection(db, "teams"), teamName)),
+        social_credit: currentSocialCredit - entryDeposit,
+        [`deposits.${teamName}`]: entryDeposit,
+        [`team_points.${teamName}`]: 0,
+      });
+      await setDoc(teamRef, {
+        name: teamName,
+        rules: rules,
+        description: description,
+        duration_start: new Date().toISOString().split("T")[0],
+        duration: 21,
+        total_deposit: 0,
+        total_points: 0,
+        team_points: {[userName]: 0},
+        entry_deposit: 100,
+        deduction_deposit: 20,
+        team_ranking: 100,
+        leader_ref: doc(collection(db, "users"), userName),
+        user_refs: [doc(collection(db, "users"), userName)],
+        increment: 5,
+        decrement: 2,
+      });
+      await setTier(userName);
+      console.log(`${userName} created team ${teamName}`);
     } else {
-        const current_social_credit = userDoc.data().social_credit;
-        if (current_social_credit >= entry_deposit) {
-            await updateDoc(userRef, {
-                team_refs: arrayUnion(doc(collection(db, 'teams'), teamName)),
-                social_credit: current_social_credit - entry_deposit,
-                [`deposits.${teamName}`]: entry_deposit,
-                [`team_points.${teamName}`]: 0,
-            })
-            await setDoc(teamRef, {
-                name: teamName,
-                rules: rules,
-                description: description,
-                duration_start: new Date().toISOString().split('T')[0],
-                duration: 21,
-                total_deposit: 0,
-                total_points: 0,
-                team_points: { [userName]: 0 },
-                entry_deposit: 100,
-                deduction_deposit: 20,
-                team_ranking: 100,
-                leader_ref: doc(collection(db, 'users'), userName),
-                user_refs: [doc(collection(db, 'users'), userName)],
-                increment: 5,
-                decrement: 2,
-            });
-            await setTier(userName);
-            console.log(`${userName} created team ${teamName}`);
-        } else {
-            console.log(`${userName} has not enough social credit`);
-        }
+      console.log(`${userName} has not enough social credit`);
     }
+  }
 }
 
 async function joinTeam(userName, teamName) {
-    const teamRef = doc(db, 'teams', teamName);
-    const userRef = doc(db, 'users', userName);
-    const teamDoc = await getDoc(teamRef);
-    const userDoc = await getDoc(userRef);
+  const teamRef = doc(db, "teams", teamName);
+  const userRef = doc(db, "users", userName);
+  const teamDoc = await getDoc(teamRef);
+  const userDoc = await getDoc(userRef);
 
-    const memberRefs = teamDoc.data().user_refs;
-    const memberExistsInTeam = memberRefs.some((memberRef) => memberRef.path == userRef.path);
-    if (!teamDoc.exists()) {
-        console.log(`${teamName} does not exist`)
+  const memberRefs = teamDoc.data().user_refs;
+  const memberExistsInTeam =
+        memberRefs.some((memberRef) => memberRef.path == userRef.path);
+  if (!teamDoc.exists()) {
+    console.log(`${teamName} does not exist`);
+  } else if (memberExistsInTeam) {
+    console.log(`${userName} is already in the team ${teamName}`);
+  } else if (teamDoc.exists() && !memberExistsInTeam) {
+    const entryDeposit = teamDoc.data().entry_deposit;
+    const currentSocialCredit = userDoc.data().social_credit;
+    if (currentSocialCredit >= entryDeposit) {
+      await updateDoc(userRef, {
+        team_refs: arrayUnion(doc(collection(db, "teams"), teamName)),
+        social_credit: currentSocialCredit - entryDeposit,
+        [`deposits.${teamName}`]: entryDeposit,
+        [`team_points.${teamName}`]: 0,
+      });
+      await updateDoc(teamRef, {
+        user_refs: arrayUnion(doc(collection(db, "users"), userName)),
+        [`team_points.${userName}`]: 0,
+      });
+      await setTier(userName);
+      console.log(`${userName} becomes a member of team ${teamName}`);
+    } else {
+      console.log(`${userName} has not enough social credit`);
     }
-    else if (memberExistsInTeam) {
-        console.log(`${userName} is already in the team ${teamName}`)
-    }
-    else if (teamDoc.exists() && !memberExistsInTeam) {
-        const entry_deposit = teamDoc.data().entry_deposit;
-        const current_social_credit = userDoc.data().social_credit;
-        if (current_social_credit >= entry_deposit) {
-            await updateDoc(userRef, {
-                team_refs: arrayUnion(doc(collection(db, 'teams'), teamName)),
-                social_credit: current_social_credit - entry_deposit,
-                [`deposits.${teamName}`]: entry_deposit,
-                [`team_points.${teamName}`]: 0,
-            })
-            await updateDoc(teamRef, {
-                user_refs: arrayUnion(doc(collection(db, 'users'), userName)),
-                [`team_points.${userName}`]: 0,
-            })
-            await setTier(userName);
-            console.log(`${userName} becomes a member of team ${teamName}`);
-        } else {
-            console.log(`${userName} has not enough social credit`);
-        }
-    }
+  }
 }
 
 
-module.exports = { newTeam, joinTeam };
+module.exports = {newTeam, joinTeam};
