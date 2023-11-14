@@ -4,6 +4,50 @@ const { getFirestore, doc, collection, getDocs, getDoc, setDoc, addDoc,
 
 const db = getFirestore();
 
+function extractTeamNames(references) {
+    return references.map(ref => {
+        // Split the reference string and get the last part (team name)
+        const parts = ref.split('/');
+        return parts[parts.length - 1];
+    });
+}
+
+function extractUserNames(references) {
+    return references.map(ref => {
+        // Split the reference string and get the last part (team name)
+        const parts = ref.split('/');
+        return parts[parts.length - 1];
+    });
+}
+
+async function getUserInfo(userName){
+    const userRef = doc((collection(db, "users"), userName));
+    const userDoc = await getDoc(userRef);
+    const data = userDoc.data();
+    return {
+        "name": data.name,
+        "progress": data.progress,
+        "deposits": data.deposits,
+        "social_credit": data.social_credit,
+        "teams": extractTeamNames(data.team_refs),
+    }
+}
+
+async function getTeamInfo(teamName){
+    const teamRef = doc((collection(db, "teams"), teamName));
+    const teamDoc = await getDoc(teamRef);
+    const data = teamDoc.data();
+    return {
+        "name": teamDoc.id,
+        "description": data.description,
+        "duration_start": data.duration_start,
+        "members": extractUserNames(data.user_refs),
+        "ranking": data.team_ranking,
+        "total_points": data.total_points,
+    }
+
+}
+
 async function userCredit(userName) {
     const userRef = doc(collection(db, "users"), userName);
     const userDoc = await getDoc(userRef);
@@ -48,4 +92,4 @@ async function teamPoints(teamName) {
     }
 }
 
-module.exports = { userCredit, userTeamPoints, userDeposits, teamPoints };
+module.exports = { userCredit, userTeamPoints, userDeposits, teamPoints, getUserInfo, getTeamInfo };

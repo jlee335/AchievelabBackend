@@ -39,6 +39,8 @@ const {newTeam, joinTeam} = require("./achievelab_modules/Teams");
 const {addProgressMapping} = require("./achievelab_modules/Progress");
 const {ranking, getTeamRanking, getTopNRanking} =
 require("./achievelab_modules/Ranking");
+const {addChat, getChats} = require("./achievelab_modules/Chat");
+const { getUserInfo, getTeamInfo } = require("./achievelab_modules/Infos");
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
@@ -143,3 +145,33 @@ exports.getTopNRanking = onRequest((request, response) => {
   });
 });
 
+exports.addChat = onRequest((request, response) => {
+  const userName = request.body.userName;
+  const teamName = request.body.teamName;
+  addChat(userName, teamName);
+})
+
+exports.getChats = onRequest((request, response) => {
+  const teamName = request.body.teamName;
+  getChats(teamName, (chats)=>{
+    response.json({chats: chats});
+  });
+})
+
+exports.joinTeamAPI = onRequest((reqeust, response) => {
+  const userName = request.body.userName;
+  const teamName = request.body.teamName;
+  const userInfo = getUserInfo(userName);
+  const teamInfo = getTeamInfo(teamName);
+  const socialCredit = userInfo["social_credit"];
+  const teamScore = teamInfo["total_points"];
+  response.json({
+    socialCredit: socialCredit,
+    deposit: 100,
+    failDeduction: 20,
+    teamScore: teamScore,
+    initialScore: 0,
+    increment: 5
+  })
+  joinTeam(userName, teamName);
+})
