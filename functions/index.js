@@ -9,7 +9,7 @@
 
 
 // The Cloud Functions for Firebase SDK to create Cloud Functions and triggers.
-const {logger} = require("firebase-functions");
+// const {logger} = require("firebase-functions");
 const {onRequest} = require("firebase-functions/v2/https");
 // const {onDocumentCreated} = require("firebase-functions/v2/firestore");s
 
@@ -34,27 +34,20 @@ const firebaseConfig = {
 initializeApp(firebaseConfig);
 
 
-const {handleSignUp, handleSignIn} = require("./achievelab_modules/Signup");
+const {handleSignUp} = require("./achievelab_modules/Signup");
 const {newTeam, joinTeam} = require("./achievelab_modules/Teams");
 const {addProgressMapping} = require("./achievelab_modules/Progress");
-const {ranking, getTeamRanking, getTopNRanking} =
-  require("./achievelab_modules/Ranking");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
-const {getUserInfo, getTeamInfo, userExist, teamExist} = require("./achievelab_modules/Infos");
-require("./achievelab_modules/Ranking");
+const {getUserInfo, getTeamInfo, userExist, teamExist} =
+  require("./achievelab_modules/Infos");
 
-const {transferTeamUser, transferUserTeam} =
-  require("./achievelab_modules/PointLogic");
+// const {transferTeamUser, transferUserTeam} =
+//   require("./achievelab_modules/PointLogic");
+
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
-exports.helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
-  response.send("hahaha!!");
-});
-
 // Signup
-
 exports.handleSignUp = onRequest((request, response) => {
   // Extract the email and password from the POST request.
   console.log(request.body);
@@ -67,16 +60,16 @@ exports.handleSignUp = onRequest((request, response) => {
   response.json({result: "success"});
 });
 
-exports.handleSignIn = onRequest((request, response) => {
-  // Extract the email and password from the POST request.
-  console.log(request.body);
-  const email = request.body.email;
-  const password = request.body.password;
-  // Call the `handleSignUp` function from the `Signup` module.
-  handleSignIn(email, password);
-  // Return a JSON response.
-  response.json({result: "success"});
-});
+// exports.handleSignIn = onRequest((request, response) => {
+//   // Extract the email and password from the POST request.
+//   console.log(request.body);
+//   const email = request.body.email;
+//   const password = request.body.password;
+//   // Call the `handleSignUp` function from the `Signup` module.
+//   handleSignIn(email, password);
+//   // Return a JSON response.
+//   response.json({result: "success"});
+// });
 
 exports.newTeam = onRequest((request, response) => {
   // Extract the email and password from the POST request.
@@ -92,9 +85,7 @@ exports.newTeam = onRequest((request, response) => {
   response.json({result: "success"});
 });
 
-
 /* Ranking and progress */
-
 exports.addProgressMapping = onRequest((request, response) => {
   const userName = request.body.userName;
   const date = request.body.date; // new Date().toISOString().split('T')[0]
@@ -110,32 +101,32 @@ exports.addProgressMapping = onRequest((request, response) => {
   });
 });
 
-exports.ranking = onRequest((request, response) => {
-  const teamName = request.body.teamName;
-  ranking(teamName).then((result) => {
-    response.json({in_team_ranking: result});
-  }).catch((error) => {
-    console.error(error);
-  });
-});
+// exports.ranking = onRequest((request, response) => {
+//   const teamName = request.body.teamName;
+//   ranking(teamName).then((result) => {
+//     response.json({in_team_ranking: result});
+//   }).catch((error) => {
+//     console.error(error);
+//   });
+// });
 
-exports.getTeamRanking = onRequest((request, response) => {
-  const teamName = request.body.teamName;
-  getTeamRanking(teamName).then((result) => {
-    response.json({team_ranking: result});
-  }).catch((error) => {
-    console.error(error);
-  });
-});
+// exports.getTeamRanking = onRequest((request, response) => {
+//   const teamName = request.body.teamName;
+//   getTeamRanking(teamName).then((result) => {
+//     response.json({team_ranking: result});
+//   }).catch((error) => {
+//     console.error(error);
+//   });
+// });
 
-exports.getTopNRanking = onRequest((request, response) => {
-  const numTeams = request.body.numTeams;
-  getTopNRanking(numTeams).then((result) => {
-    response.json({topNranking: result});
-  }).catch((error) => {
-    console.error(error);
-  });
-});
+// exports.getTopNRanking = onRequest((request, response) => {
+//   const numTeams = request.body.numTeams;
+//   getTopNRanking(numTeams).then((result) => {
+//     response.json({topNranking: result});
+//   }).catch((error) => {
+//     console.error(error);
+//   });
+// });
 exports.addChatAPI = onRequest(async (request, response) => {
   const userName = request.body.userName;
   const teamName = request.body.teamName;

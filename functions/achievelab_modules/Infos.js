@@ -1,7 +1,5 @@
 /* eslint-disable require-jsdoc */
-const {getFirestore, doc, collection, getDocs, getDoc, setDoc, addDoc,
-  updateDoc, increment, arrayUnion, query, where,
-  orderBy, limit} = require("firebase/firestore");
+const {getFirestore, doc, collection, getDoc} = require("firebase/firestore");
 
 const db = getFirestore();
 
@@ -110,4 +108,5 @@ async function teamPoints(teamName) {
   }
 }
 
-module.exports = {userCredit, userTeamPoints, userDeposits, teamPoints, getUserInfo, getTeamInfo, userExist, teamExist};
+module.exports = {userCredit, userTeamPoints, userDeposits,
+  teamPoints, getUserInfo, getTeamInfo, userExist, teamExist};

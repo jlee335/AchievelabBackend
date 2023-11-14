@@ -1,7 +1,6 @@
 /* eslint-disable require-jsdoc */
-const {getFirestore} = require("firebase/firestore");
-const {getDatabase, ref, onValue, push, serverTimestamp} = require("firebase/database");
-const functions = require("firebase-functions");
+const {getDatabase, ref, onValue, push, serverTimestamp} =
+  require("firebase/database");
 
 const database = getDatabase();
 function addChat(userName, teamName, message) {

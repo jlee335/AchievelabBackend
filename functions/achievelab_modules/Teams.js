@@ -105,6 +105,7 @@ async function joinTeam(userName, teamName) {
       // transfer entry deposit to team
       await transferUserTeam(userName, teamName, entryDeposit);
 
+
       console.log(`${userName} becomes a member of team ${teamName}`);
     } else {
       console.log(`${userName} has not enough social credit`);
