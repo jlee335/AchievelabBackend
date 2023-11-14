@@ -1,27 +1,29 @@
-const { getFirestore } = require("firebase/firestore");
-const { getDatabase } = require('firebase/database');
+/* eslint-disable require-jsdoc */
+const {getFirestore} = require("firebase/firestore");
+const {getDatabase, ref, onValue, push, serverTimestamp} = require("firebase/database");
+const functions = require("firebase-functions");
 
 const database = getDatabase();
 function addChat(userName, teamName, message) {
-    const chatRef = database.ref(`chats/${teamName}`);
-    chatRef.push({
-        user: userName,
-        message: message,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    });
+  const chatRef = ref(database, `chats/${teamName}`);
+  push(chatRef, {
+    user: userName,
+    message: message,
+    timestamp: serverTimestamp(),
+  });
 }
 function getChats(teamName, callback) {
-    const chatRef = database.ref(`chats/${teamName}`);
+  const chatRef = ref(database, `chats/${teamName}`);
 
-    chatRef.on('value', (snapshot) => {
-        const chats = [];
-        snapshot.forEach((childSnapshot) => {
-            const data = childSnapshot.val();
-            const chat = [data.user, data.message];
-            chats.push(chat);
-        });
-        callback(chats);
+  onValue(chatRef, (snapshot) => {
+    const chats = [];
+    snapshot.forEach((childSnapshot) => {
+      const data = childSnapshot.val();
+      const chat = [data.user, data.message];
+      chats.push(chat);
     });
+    callback(chats);
+  });
 }
 
 // addChat("user1", "teamA", "Hello, team A!");
@@ -30,4 +32,4 @@ function getChats(teamName, callback) {
 //   console.log(chats);
 // });
 
-module.exports = { addChat, getChats };
+module.exports = {addChat, getChats};

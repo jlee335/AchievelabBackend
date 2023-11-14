@@ -38,9 +38,9 @@ const {handleSignUp, handleSignIn} = require("./achievelab_modules/Signup");
 const {newTeam, joinTeam} = require("./achievelab_modules/Teams");
 const {addProgressMapping} = require("./achievelab_modules/Progress");
 const {ranking, getTeamRanking, getTopNRanking} =
-require("./achievelab_modules/Ranking");
+  require("./achievelab_modules/Ranking");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
-const {getUserInfo, getTeamInfo} = require("./achievelab_modules/Infos");
+const {getUserInfo, getTeamInfo, userExist, teamExist} = require("./achievelab_modules/Infos");
 require("./achievelab_modules/Ranking");
 
 const {transferTeamUser, transferUserTeam} =
@@ -136,35 +136,72 @@ exports.getTopNRanking = onRequest((request, response) => {
     console.error(error);
   });
 });
-
-exports.addChat = onRequest((request, response) => {
+exports.addChatAPI = onRequest(async (request, response) => {
   const userName = request.body.userName;
   const teamName = request.body.teamName;
-  addChat(userName, teamName);
-  response.json({add_chat: "success"});
+  const uE = userExist(userName);
+  const tE = teamExist(teamName);
+  if (!uE || !tE) {
+    response.json({
+      result: "user or team does not exist",
+    });
+  } else {
+    const message = request.body.message;
+    addChat(userName, teamName, message);
+    response.json({
+      result: "Chat added successfully",
+    });
+  }
 });
 
-exports.getChats = onRequest((request, response) => {
+exports.getChatsAPI = onRequest(async (request, response) => {
   const teamName = request.body.teamName;
-  getChats(teamName, (chats)=>{
-    response.json({chats: chats});
-  });
+  const tE = await teamExist(teamName);
+  if (!tE) {
+    response.json({
+      result: "team does not exist",
+    });
+  } else {
+    getChats(teamName, (chats) => {
+      response.json({chats: chats});
+    });
+  }
 });
 
-exports.joinTeamAPI = onRequest((request, response) => {
+exports.joinTeamAPI = onRequest(async (request, response) => {
   const userName = request.body.userName;
   const teamName = request.body.teamName;
-  const userInfo = getUserInfo(userName);
-  const teamInfo = getTeamInfo(teamName);
-  const socialCredit = userInfo["social_credit"];
-  const teamScore = teamInfo["total_points"];
-  joinTeam(userName, teamName);
-  response.json({
-    "socialCredit": socialCredit,
-    "deposit": 100,
-    "failDeduction": 20,
-    "teamScore": teamScore,
-    "initialScore": 0,
-    "increment": 5,
-  });
+  console.log("========================================");
+  const uE = await userExist(userName);
+  const tE = await teamExist(teamName);
+  console.log(tE, uE);
+  if (!uE || !tE) {
+    response.json({
+      result: "no user or no team",
+    });
+  } else {
+    const result = joinTeam(userName, teamName);
+    if (result) {
+      getUserInfo(userName).then((userInfo) => {
+        getTeamInfo(teamName).then((teamInfo) => {
+          const socialCredit = userInfo["social_credit"];
+          const teamScore = teamInfo["total_points"];
+          console.log(userInfo);
+          console.log(teamInfo);
+          response.json({
+            socialCredit: socialCredit,
+            deposit: 100,
+            failDeduction: 20,
+            teamScore: teamScore,
+            initialScore: 0,
+            increment: 5,
+          });
+        });
+      });
+    } else {
+      response.json({
+        result: "fail to join",
+      });
+    }
+  }
 });
