@@ -46,7 +46,7 @@ const {addProgressMapping} = require("./achievelab_modules/Progress");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
 const {getUserInfo, getTeamInfo, userExist, teamExist, progressInfo} =
   require("./achievelab_modules/Infos");
-
+const {getTopNRanking} = require("./achievelab_modules/Ranking");
 const {resetTeam} = require("./achievelab_modules/reset");
 const {resetUsers} = require("./achievelab_modules/Payback");
 
@@ -240,6 +240,14 @@ exports.progressAPI = onRequest(async (request, response) => {
     }
   }
 });
+
+exports.LeaderBoardAPI = onRequest(async (request, response) => {
+  const N = request.body.N;
+  LeaderBoardInfos = await getTopNRanking(N);
+  response.json({
+    LeaderBoardInfos
+  })
+})
 
 
 async function paybackCallback(event) {
