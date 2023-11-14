@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 const {getFirestore, doc, collection, getDoc,
 } = require("firebase/firestore");
-const {ranking} = require("./Ranking");
+const {ranking, getTopNRanking} = require("./Ranking");
 const db = getFirestore();
 
 async function userExist(userName) {
