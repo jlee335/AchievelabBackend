@@ -162,7 +162,7 @@ exports.getChatsAPI = onRequest(async (request, response) => {
       result: "team does not exist",
     });
   } else {
-    getChats(teamName, (chats)=>{
+    getChats(teamName, (chats) => {
       response.json({chats: chats});
     });
   }
@@ -262,3 +262,8 @@ async function paybackCallback(event) {
 }
 
 exports.payback = onSchedule("every monday 00:00", paybackCallback);
+
+// Force reset all users by GET call
+exports.resetUsers = onRequest(async (request, response) => {
+  paybackCallback(null);
+});
