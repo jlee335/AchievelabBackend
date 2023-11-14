@@ -243,11 +243,11 @@ exports.progressAPI = onRequest(async (request, response) => {
 
 exports.LeaderBoardAPI = onRequest(async (request, response) => {
   const N = request.body.N;
-  LeaderBoardInfos = await getTopNRanking(N);
+  const LeaderBoardInfos = await getTopNRanking(N);
   response.json({
-    LeaderBoardInfos
-  })
-})
+    LeaderBoardInfos,
+  });
+});
 
 
 async function paybackCallback(event) {
