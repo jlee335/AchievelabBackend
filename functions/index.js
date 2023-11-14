@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 /**
  * Import function triggers from their respective submodules:
  *
@@ -10,7 +11,7 @@
 
 // The Cloud Functions for Firebase SDK to create Cloud Functions and triggers.
 // const {logger} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/v2/https");
+const {onRequest, onSchedule} = require("firebase-functions/v2/https");
 // const {onDocumentCreated} = require("firebase-functions/v2/firestore");s
 
 // The Firebase Admin SDK to access Firestore.
@@ -33,6 +34,9 @@ const firebaseConfig = {
 
 initializeApp(firebaseConfig);
 
+const {getFirestore, collection,
+  getDocs} = require("firebase/firestore");
+
 
 const {handleSignUp} = require("./achievelab_modules/Signup");
 const {newTeam, joinTeam} = require("./achievelab_modules/Teams");
@@ -40,6 +44,9 @@ const {addProgressMapping} = require("./achievelab_modules/Progress");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
 const {getUserInfo, getTeamInfo, userExist, teamExist} =
   require("./achievelab_modules/Infos");
+
+const {resetTeam} = require("./achievelab_modules/Reset");
+const {resetUsers} = require("./achievelab_modules/Payback");
 
 // const {transferTeamUser, transferUserTeam} =
 //   require("./achievelab_modules/PointLogic");
@@ -196,3 +203,28 @@ exports.joinTeamAPI = onRequest(async (request, response) => {
     }
   }
 });
+
+
+// Schedule every monday 00:00 korea time
+
+async function paybackCallback(event) {
+  {
+    const db = getFirestore();
+    const teamsRef = collection(db, "teams");
+    // const usersRef = collection(db, "users");
+
+    const teamsSnapshot = await getDocs(teamsRef);
+    // const usersSnapshot = await getDocs(usersRef);
+
+    teamsSnapshot.forEach(async (teamDoc) => {
+      const teamName = teamDoc.data().name;
+      await resetTeam(teamName);
+    });
+
+    // Payback all users
+    await resetUsers();
+  }
+}
+
+exports.payback = onSchedule("every monday 00:00", paybackCallback);
+

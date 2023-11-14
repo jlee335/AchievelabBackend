@@ -1,5 +1,6 @@
 /* eslint-disable require-jsdoc */
 const {getFirestore, doc, runTransaction} = require("firebase/firestore");
+const {logger} = require("firebase-functions");
 
 const db = getFirestore();
 
@@ -34,10 +35,11 @@ async function transferTeamUser(userName, teamName, amount) {
     const newTeamDeposit = teamDeposit - amount;
     transaction.update(teamRef, {total_deposit: newTeamDeposit});
   }).then(() => {
-    console.log("Team --> User Transaction successfully committed!");
+    logger.log(`Team ${teamName} transferred ${amount} to User ${userName}`);
     return true;
   }).catch((error) => {
-    console.log("Transaction failed: ", error);
+    logger.log(`Team ${teamName} failed to transfer 
+      ${amount} to User ${userName}`);
     return false;
   });
 }
@@ -50,7 +52,6 @@ async function transferUserTeam(userName, teamName, amount) {
     const user = await transaction.get(userRef);
     const team = await transaction.get(teamRef);
 
-    console.log(user, team);
 
     // Check if user exists
     if (!user.exists) {
@@ -74,10 +75,12 @@ async function transferUserTeam(userName, teamName, amount) {
     const newTeamDeposit = teamDeposit + amount;
     transaction.update(teamRef, {total_deposit: newTeamDeposit});
   }).then(() => {
-    console.log("Uesr --> Team Transaction successfully committed!");
+    // Message of transfer in logger (from whom to who)
+    logger.log(`User ${userName} transferred ${amount} to Team ${teamName}`);
     return true;
   }).catch((error) => {
-    console.log("Transaction failed: ", error);
+    logger.log(`User ${userName} failed to transfer 
+      ${amount} to Team ${teamName}`);
     return false;
   });
 }

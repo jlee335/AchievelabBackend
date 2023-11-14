@@ -44,10 +44,13 @@ async function addProgressMapping(userName, date, teamName, result) {
         const decrement = await teamDoc.data().decrement;
         const totalPoints = await teamDoc.data().total_points;
         if (result == "success") {
+          //* ***** */
           await updateDoc(teamRef, {
             [`team_points.${userName}`]: teamPts + increment,
             total_points: totalPoints + increment,
           });
+          //* ***** */
+
           await updateDoc(userRef, {
             [`team_points.${teamName}`]: teamPts + increment,
           });
