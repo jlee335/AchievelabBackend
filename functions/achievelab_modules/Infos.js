@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
-const {getFirestore, doc, collection, getDoc} = require("firebase/firestore");
-
+const {getFirestore, doc, collection, getDoc,
+} = require("firebase/firestore");
+const {ranking} = require("./Ranking");
 const db = getFirestore();
 
 async function userExist(userName) {
@@ -108,5 +109,28 @@ async function teamPoints(teamName) {
   }
 }
 
-module.exports = {userCredit, userTeamPoints, userDeposits,
+function rank(rankings, name) {
+  for (let i = 0; i < rankings.length; i++) {
+    if (rankings[i].id === name) {
+      return i + 1;
+    }
+  }
+}
+
+async function progressInfo(userName, teamName) {
+  // const userRef = doc(db, "users", userName);
+  // const userDoc = await getDoc(userRef);
+  const teamRef = doc(db, "teams", teamName);
+  const teamDoc = await getDoc(teamRef);
+  const rankings = await ranking(teamName);
+  const Ranking = await rank(rankings, userName);
+  const TotalPoint = teamDoc.data().total_points;
+  const Point = teamDoc.data().team_points[userName];
+  return {
+    Ranking: Ranking,
+    TotalPoint: TotalPoint,
+    Point: Point,
+  };
+}
+module.exports = {progressInfo, userCredit, userTeamPoints, userDeposits,
   teamPoints, getUserInfo, getTeamInfo, userExist, teamExist};

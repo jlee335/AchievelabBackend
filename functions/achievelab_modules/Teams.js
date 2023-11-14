@@ -64,14 +64,15 @@ async function joinTeam(userName, teamName) {
   const userRef = doc(db, "users", userName);
   const teamDoc = await getDoc(teamRef);
   const userDoc = await getDoc(userRef);
-
   const memberRefs = teamDoc.data().user_refs;
   const memberExistsInTeam =
     memberRefs.some((memberRef) => memberRef.path == userRef.path);
   if (!teamDoc.exists()) {
     console.log(`${teamName} does not exist`);
+    return false;
   } else if (memberExistsInTeam) {
     console.log(`${userName} is already in the team ${teamName}`);
+    return false;
   } else if (teamDoc.exists() && !memberExistsInTeam) {
     const entryDeposit = teamDoc.data().entry_deposit;
     const currentSocialCredit = userDoc.data().social_credit;
@@ -125,8 +126,10 @@ async function joinTeam(userName, teamName) {
 
 
       console.log(`${userName} becomes a member of team ${teamName}`);
+      return true;
     } else {
       console.log(`${userName} has not enough social credit`);
+      return false;
     }
   }
 }

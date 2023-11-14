@@ -11,7 +11,9 @@
 
 // The Cloud Functions for Firebase SDK to create Cloud Functions and triggers.
 // const {logger} = require("firebase-functions");
-const {onRequest, onSchedule} = require("firebase-functions/v2/https");
+const {onRequest} = require("firebase-functions/v2/https");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
+
 // const {onDocumentCreated} = require("firebase-functions/v2/firestore");s
 
 // The Firebase Admin SDK to access Firestore.
@@ -42,10 +44,10 @@ const {handleSignUp} = require("./achievelab_modules/Signup");
 const {newTeam, joinTeam} = require("./achievelab_modules/Teams");
 const {addProgressMapping} = require("./achievelab_modules/Progress");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
-const {getUserInfo, getTeamInfo, userExist, teamExist} =
+const {getUserInfo, getTeamInfo, userExist, teamExist, progressInfo} =
   require("./achievelab_modules/Infos");
 
-const {resetTeam} = require("./achievelab_modules/Reset");
+const {resetTeam} = require("./achievelab_modules/reset");
 const {resetUsers} = require("./achievelab_modules/Payback");
 
 // const {transferTeamUser, transferUserTeam} =
@@ -160,7 +162,7 @@ exports.getChatsAPI = onRequest(async (request, response) => {
       result: "team does not exist",
     });
   } else {
-    getChats(teamName, (chats) => {
+    getChats(teamName, (chats)=>{
       response.json({chats: chats});
     });
   }
@@ -205,7 +207,40 @@ exports.joinTeamAPI = onRequest(async (request, response) => {
 });
 
 
-// Schedule every monday 00:00 korea time
+exports.progressAPI = onRequest(async (request, response) => {
+  const userName = request.body.userName;
+  const teamName = request.body.teamName;
+  const date = request.body.date;
+  const success = request.body.isSuccess;
+
+  const prevInfo = await progressInfo(userName, teamName);
+  const result = await addProgressMapping(userName, date, teamName, "success");
+  if (!result) {
+    response.json({
+      result: "already recorded today's progress!",
+    });
+  } else {
+    if (success) {
+      const curInfo = await progressInfo(userName, teamName);
+      const rankChanged = (prevInfo["Ranking"] != curInfo["Ranking"]);
+      response.json({
+        rankChanged: rankChanged,
+        prevRank: prevInfo["Ranking"],
+        curRank: curInfo["Ranking"],
+        prevScore: prevInfo["Point"],
+        curScore: curInfo["Point"],
+        prevTotalScore: prevInfo["TotalPoint"],
+        curTotalScore: curInfo["TotalPoint"],
+      });
+    } else {
+      const userInfo = await getUserInfo(userName);
+      response.json({
+        leftDeposit: userInfo["deposits"][teamName],
+      });
+    }
+  }
+});
+
 
 async function paybackCallback(event) {
   {
@@ -227,4 +262,3 @@ async function paybackCallback(event) {
 }
 
 exports.payback = onSchedule("every monday 00:00", paybackCallback);
-
