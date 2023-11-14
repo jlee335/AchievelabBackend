@@ -40,7 +40,8 @@ const {addProgressMapping} = require("./achievelab_modules/Progress");
 const {ranking, getTeamRanking, getTopNRanking} =
 require("./achievelab_modules/Ranking");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
-const { getUserInfo, getTeamInfo } = require("./achievelab_modules/Infos");
+const { getUserInfo, getTeamInfo, userExist, teamExist, progressInfo } = require("./achievelab_modules/Infos");
+const { user } = require("firebase-functions/v1/auth");
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
@@ -145,33 +146,116 @@ exports.getTopNRanking = onRequest((request, response) => {
   });
 });
 
-exports.addChat = onRequest((request, response) => {
+exports.addChatAPI = onRequest(async (request, response) => {
   const userName = request.body.userName;
   const teamName = request.body.teamName;
-  addChat(userName, teamName);
+  const uE = userExist(userName);
+  const tE = teamExist(teamName);
+  if (!uE || !tE) {
+    response.json({
+      result: "user or team does not exist"
+    });
+  } else { 
+    const message = request.body.message;
+    addChat(userName, teamName, message);
+    response.json({
+      result: "Chat added successfully"
+    });
+  }
 })
 
-exports.getChats = onRequest((request, response) => {
+exports.getChatsAPI = onRequest(async (request, response) => {
   const teamName = request.body.teamName;
-  getChats(teamName, (chats)=>{
-    response.json({chats: chats});
-  });
+  const tE = await teamExist(teamName);
+  if (!tE) {
+    response.json({
+      result: "team does not exist"
+    })
+  } else {
+    getChats(teamName, (chats)=>{
+      response.json({chats: chats});
+    });
+  }
 })
 
-exports.joinTeamAPI = onRequest((reqeust, response) => {
+exports.joinTeamAPI = onRequest(async (request, response) => {
   const userName = request.body.userName;
   const teamName = request.body.teamName;
-  const userInfo = getUserInfo(userName);
-  const teamInfo = getTeamInfo(teamName);
-  const socialCredit = userInfo["social_credit"];
-  const teamScore = teamInfo["total_points"];
-  response.json({
-    socialCredit: socialCredit,
-    deposit: 100,
-    failDeduction: 20,
-    teamScore: teamScore,
-    initialScore: 0,
-    increment: 5
-  })
-  joinTeam(userName, teamName);
+  console.log("========================================");
+  const uE = await userExist(userName);
+  const tE = await teamExist(teamName);
+  console.log(tE, uE);
+  if (!uE || !tE) {
+    response.json({
+      result: "no user or no team"
+    })
+  } else{
+    const result = joinTeam(userName, teamName);
+    if (result){
+      getUserInfo(userName).then((userInfo) => {
+        getTeamInfo(teamName).then((teamInfo) => {
+          const socialCredit = userInfo["social_credit"];
+          const teamScore = teamInfo["total_points"];
+          console.log(userInfo)
+          console.log(teamInfo)
+          response.json({
+            socialCredit: socialCredit,
+            deposit: 100,
+            failDeduction: 20,
+            teamScore: teamScore,
+            initialScore: 0,
+            increment: 5
+          })
+        })
+      })
+    } else {
+      response.json({
+        result: "fail to join"
+      })
+    }
+  }
+})
+
+function rank(rankings, name) {
+  for (let i = 0; i < rankings.length; i++){
+    if (rankings[i].name === name) {
+      return i + 1;
+    }
+  }
+}
+
+exports.progress = onRequest(async (request, response) => {
+  const userName = request.body.userName;
+  const teamName = request.body.teamName;
+  const date = request.body.date;
+  const success = request.body.isSuccess;
+
+  const prevInfo = await progressInfo(userName, teamName);
+  const result = await addProgressMapping(userName, date, teamName, "success");
+  if (!result) {
+    response.json({
+      result: "already recorded today's progress!"
+    })
+  }
+  else {
+    if (success) {
+      const curInfo = await progressInfo(userName, teamName);
+      const rankChanged = (prevInfo["Ranking"] !=  curInfo["Ranking"]);
+      response.json({
+        rankChanged: rankChanged,
+        prevRank: prevInfo["Ranking"],
+        curRank: curInfo["Ranking"],
+        prevScore: prevInfo["Point"],
+        curScore: curInfo["Point"],
+        prevTotalScore: prevInfo["TotalPoint"],
+        curTotalScore: curInfo["TotalPoint"],
+      })
+    }
+    else {
+      const userInfo = await getUserInfo(userName);
+      response.json({
+        leftDeposit: userInfo["deposits"][teamName],
+      })
+    }
+  }
 })

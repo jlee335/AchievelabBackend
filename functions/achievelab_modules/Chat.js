@@ -1,19 +1,20 @@
 const { getFirestore } = require("firebase/firestore");
-const { getDatabase } = require('firebase/database');
+const { getDatabase, ref, onValue, push, serverTimestamp } = require('firebase/database');
+const functions = require('firebase-functions');
 
 const database = getDatabase();
 function addChat(userName, teamName, message) {
-    const chatRef = database.ref(`chats/${teamName}`);
-    chatRef.push({
+    const chatRef = ref(database, `chats/${teamName}`);
+    push(chatRef, {
         user: userName,
         message: message,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
+        timestamp: serverTimestamp()
     });
 }
 function getChats(teamName, callback) {
-    const chatRef = database.ref(`chats/${teamName}`);
+    const chatRef = ref(database, `chats/${teamName}`);
 
-    chatRef.on('value', (snapshot) => {
+    onValue(chatRef, (snapshot) => {
         const chats = [];
         snapshot.forEach((childSnapshot) => {
             const data = childSnapshot.val();
