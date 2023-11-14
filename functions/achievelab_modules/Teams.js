@@ -10,6 +10,9 @@ const {getFirestore, doc, collection, getDoc, setDoc,
 
 const {setTier} = require("./SetTier");
 
+const {transferUserTeam} =
+  require("./PointLogic");
+
 const db = getFirestore();
 
 
@@ -64,7 +67,7 @@ async function joinTeam(userName, teamName) {
 
   const memberRefs = teamDoc.data().user_refs;
   const memberExistsInTeam =
-        memberRefs.some((memberRef) => memberRef.path == userRef.path);
+    memberRefs.some((memberRef) => memberRef.path == userRef.path);
   if (!teamDoc.exists()) {
     console.log(`${teamName} does not exist`);
   } else if (memberExistsInTeam) {
@@ -73,17 +76,35 @@ async function joinTeam(userName, teamName) {
     const entryDeposit = teamDoc.data().entry_deposit;
     const currentSocialCredit = userDoc.data().social_credit;
     if (currentSocialCredit >= entryDeposit) {
-      await updateDoc(userRef, {
-        team_refs: arrayUnion(doc(collection(db, "teams"), teamName)),
-        social_credit: currentSocialCredit - entryDeposit,
-        [`deposits.${teamName}`]: entryDeposit,
-        [`team_points.${teamName}`]: 0,
-      });
+      // TODO: Change to transfer function
+      // await updateDoc(userRef, {
+      //   team_refs: arrayUnion(doc(collection(db, "teams"), teamName)),
+      //   social_credit: currentSocialCredit - entryDeposit,
+      //   [`deposits.${teamName}`]: entryDeposit,
+      //   [`team_points.${teamName}`]: 0,
+      // });
+      // await updateDoc(teamRef, {
+      //   user_refs: arrayUnion(doc(collection(db, "users"), userName)),
+      //   [`team_points.${userName}`]: 0,
+      // });
+      // await setTier(userName);
+
+      // add user to team
       await updateDoc(teamRef, {
         user_refs: arrayUnion(doc(collection(db, "users"), userName)),
         [`team_points.${userName}`]: 0,
       });
-      await setTier(userName);
+
+      await updateDoc(userRef, {
+        team_refs: arrayUnion(doc(collection(db, "teams"), teamName)),
+        // social_credit: currentSocialCredit - entryDeposit,
+        [`deposits.${teamName}`]: entryDeposit,
+        [`team_points.${teamName}`]: 0,
+      });
+
+      // transfer entry deposit to team
+      await transferUserTeam(userName, teamName, entryDeposit);
+
       console.log(`${userName} becomes a member of team ${teamName}`);
     } else {
       console.log(`${userName} has not enough social credit`);

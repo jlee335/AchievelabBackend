@@ -40,7 +40,11 @@ const {addProgressMapping} = require("./achievelab_modules/Progress");
 const {ranking, getTeamRanking, getTopNRanking} =
 require("./achievelab_modules/Ranking");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
-const { getUserInfo, getTeamInfo } = require("./achievelab_modules/Infos");
+const {getUserInfo, getTeamInfo} = require("./achievelab_modules/Infos");
+require("./achievelab_modules/Ranking");
+
+const {transferTeamUser, transferUserTeam} =
+  require("./achievelab_modules/PointLogic");
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
@@ -88,17 +92,6 @@ exports.newTeam = onRequest((request, response) => {
   response.json({result: "success"});
 });
 
-exports.joinTeam = onRequest((request, response) => {
-  // Extract the email and password from the POST request.
-  console.log(request.body);
-  const userName = request.body.userName;
-  const teamName = request.body.teamName;
-  // Call the `handleSignUp` function from the `Signup` module.
-  joinTeam(userName, teamName);
-  // Return a JSON response.
-  response.json({result: "success"});
-});
-
 
 /* Ranking and progress */
 
@@ -119,7 +112,6 @@ exports.addProgressMapping = onRequest((request, response) => {
 
 exports.ranking = onRequest((request, response) => {
   const teamName = request.body.teamName;
-
   ranking(teamName).then((result) => {
     response.json({in_team_ranking: result});
   }).catch((error) => {
@@ -149,29 +141,30 @@ exports.addChat = onRequest((request, response) => {
   const userName = request.body.userName;
   const teamName = request.body.teamName;
   addChat(userName, teamName);
-})
+  response.json({add_chat: "success"});
+});
 
 exports.getChats = onRequest((request, response) => {
   const teamName = request.body.teamName;
   getChats(teamName, (chats)=>{
     response.json({chats: chats});
   });
-})
+});
 
-exports.joinTeamAPI = onRequest((reqeust, response) => {
+exports.joinTeamAPI = onRequest((request, response) => {
   const userName = request.body.userName;
   const teamName = request.body.teamName;
   const userInfo = getUserInfo(userName);
   const teamInfo = getTeamInfo(teamName);
   const socialCredit = userInfo["social_credit"];
   const teamScore = teamInfo["total_points"];
-  response.json({
-    socialCredit: socialCredit,
-    deposit: 100,
-    failDeduction: 20,
-    teamScore: teamScore,
-    initialScore: 0,
-    increment: 5
-  })
   joinTeam(userName, teamName);
-})
+  response.json({
+    "socialCredit": socialCredit,
+    "deposit": 100,
+    "failDeduction": 20,
+    "teamScore": teamScore,
+    "initialScore": 0,
+    "increment": 5,
+  });
+});

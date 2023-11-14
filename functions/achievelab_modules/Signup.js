@@ -5,18 +5,23 @@
 const {getFirestore} = require("firebase-admin/firestore");
 const {getAuth, signInWithEmailAndPassword} = require("firebase-admin/auth");
 
+// Turn on admin app
+const {initializeApp} = require("firebase-admin/app");
+
+initializeApp();
+
+
 async function handleSignUp(email, password, name) {
   getAuth()
       .createUser({
         email: email,
         emailVerified: false,
-        phoneNumber: "+11234567890",
         password: password,
         displayName: name,
         disabled: false,
       })
       .then((userRecord) => {
-        // See the UserRecord reference doc for the contents of userRecord.
+      // See the UserRecord reference doc for the contents of userRecord.
         console.log("Successfully created new user:", userRecord.uid);
 
         getFirestore().collection("users").doc(name).set({
@@ -41,7 +46,7 @@ async function handleSignUp(email, password, name) {
 async function handleSignIn(email, password) {
   try {
     const userCredential =
-        await signInWithEmailAndPassword(getAuth(), email, password);
+      await signInWithEmailAndPassword(getAuth(), email, password);
     // Signed in
     const user = userCredential.user;
     console.log("User signed in:", user);
