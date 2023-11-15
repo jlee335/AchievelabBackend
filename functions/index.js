@@ -217,7 +217,7 @@ exports.progressAPI = onRequest(async (request, response) => {
   const result = await addProgressMapping(userName, date, teamName, "success");
   if (!result) {
     response.json({
-      result: "already recorded today's progress!",
+      result: "fail",
     });
   } else {
     if (success) {
@@ -251,26 +251,25 @@ exports.LeaderBoardAPI = onRequest(async (request, response) => {
 
 
 async function paybackCallback(event) {
-  {
-    const db = getFirestore();
-    const teamsRef = collection(db, "teams");
-    // const usersRef = collection(db, "users");
-
-    const teamsSnapshot = await getDocs(teamsRef);
-    // const usersSnapshot = await getDocs(usersRef);
-
-    teamsSnapshot.forEach(async (teamDoc) => {
-      const teamName = teamDoc.data().name;
-      await resetTeam(teamName);
-    });
-
-    // Payback all users
-    await resetUsers();
-  }
+  const db = getFirestore();
+  const teamsRef = collection(db, "teams");
+  const teamsSnapshot = await getDocs(teamsRef);
+  teamsSnapshot.forEach(async (teamDoc) => {
+    const teamName = teamDoc.data().name;
+    await resetTeam(teamName);
+  });
+  // await resetUsers();
 }
 
-exports.payback = onSchedule("every monday 00:00", paybackCallback);
 
+exports.paybackManual = onRequest(async (request, response) => {
+  paybackCallback(null);
+  response.json({
+    result: "success",
+  });
+});
+
+exports.payback = onSchedule("every monday 00:00", paybackCallback);
 // Force reset all users by GET call
 exports.resetUsers = onRequest(async (request, response) => {
   paybackCallback(null);
