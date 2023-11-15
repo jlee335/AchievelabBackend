@@ -162,7 +162,7 @@ exports.getChatsAPI = onRequest(async (request, response) => {
       result: "team does not exist",
     });
   } else {
-    getChats(teamName, (chats)=>{
+    getChats(teamName, (chats) => {
       response.json({chats: chats});
     });
   }
@@ -243,33 +243,34 @@ exports.progressAPI = onRequest(async (request, response) => {
 
 exports.LeaderBoardAPI = onRequest(async (request, response) => {
   const N = request.body.N;
-  LeaderBoardInfos = await getTopNRanking(N);
+  const LeaderBoardInfos = await getTopNRanking(N);
   response.json({
-    LeaderBoardInfos
-  })
-})
+    LeaderBoardInfos,
+  });
+});
 
 
 async function paybackCallback(event) {
-  {
-    const db = getFirestore();
-    const teamsRef = collection(db, "teams");
-    // const usersRef = collection(db, "users");
-
-    const teamsSnapshot = await getDocs(teamsRef);
-    // const usersSnapshot = await getDocs(usersRef);
-
-    teamsSnapshot.forEach(async (teamDoc) => {
-      const teamName = teamDoc.data().name;
-      await resetTeam(teamName);
-    });
-
-    // Payback all users
-    await resetUsers();
-  }
+  const db = getFirestore();
+  const teamsRef = collection(db, "teams");
+  const teamsSnapshot = await getDocs(teamsRef);
+  teamsSnapshot.forEach(async (teamDoc) => {
+    const teamName = teamDoc.data().name;
+    await resetTeam(teamName);
+  });
+  // await resetUsers();
 }
 
+
+exports.paybackManual = onRequest(async (request, response) => {
+  paybackCallback(null);
+  response.json({
+    result: "success",
+  });
+});
+
 exports.payback = onSchedule("every monday 00:00", paybackCallback);
+<<<<<<< HEAD
 
 exports.getTierAPI = onRequest(async (request, response) => {
   const userName = request.body.userName;
@@ -288,3 +289,9 @@ exports.scheduledFunction = functions.pubsub
     await everyNightProgress();
     return null;
   });
+=======
+// Force reset all users by GET call
+exports.resetUsers = onRequest(async (request, response) => {
+  paybackCallback(null);
+});
+>>>>>>> d9f3f81cbd17d582d16c94e640b42b5a692fc7b4
