@@ -142,6 +142,8 @@ async function resetTeam(teamName) {
     // For each user, add record of weekly result
     const teamDoc = await getDoc(teamRef);
     const teamMembers = teamDoc.data().team_refs;
+    console.log(teamDoc);
+    console.log(teamMembers);
     for (const memberRef of teamMembers) {
       await addUserRecord(memberRef, teamRef, transaction);
     }

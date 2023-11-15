@@ -13,6 +13,7 @@
 // const {logger} = require("firebase-functions");
 const {onRequest} = require("firebase-functions/v2/https");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
+const functions = require("firebase-functions");
 
 // const {onDocumentCreated} = require("firebase-functions/v2/firestore");s
 
@@ -42,14 +43,13 @@ const {getFirestore, collection,
 
 const {handleSignUp} = require("./achievelab_modules/Signup");
 const {newTeam, joinTeam} = require("./achievelab_modules/Teams");
-const {addProgressMapping} = require("./achievelab_modules/Progress");
+const {addProgressMapping, everyNightProgress} =
+  require("./achievelab_modules/Progress");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
 const {getUserInfo, getTeamInfo, userExist, teamExist, progressInfo} =
   require("./achievelab_modules/Infos");
 const {getTopNRanking} = require("./achievelab_modules/Ranking");
 const {resetTeam} = require("./achievelab_modules/reset");
-const {resetUsers} = require("./achievelab_modules/Payback");
-
 // const {transferTeamUser, transferUserTeam} =
 //   require("./achievelab_modules/PointLogic");
 
@@ -274,3 +274,22 @@ exports.payback = onSchedule("every monday 00:00", paybackCallback);
 exports.resetUsers = onRequest(async (request, response) => {
   paybackCallback(null);
 });
+
+
+exports.resetOneTeamTest = onRequest(async (request, response) => {
+  const teamName = request.body.teamName;
+  resetTeam(teamName);
+  response.json({
+    result: "success",
+  });
+});
+
+
+exports.scheduledFunction = functions.pubsub
+    .schedule("every day 22:30")
+    .timeZone("Asia/Seoul") // Set the time zone to Korea Standard Time (UTC+9)
+    .onRun(async (context) => {
+      console.log("This will be run every day at 22:10 in Korea Standime!");
+      await everyNightProgress();
+      return null;
+    });

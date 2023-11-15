@@ -1,5 +1,6 @@
 /* eslint-disable require-jsdoc */
-const {getFirestore, doc, getDoc, updateDoc} = require("firebase/firestore");
+const {getFirestore, doc, getDoc, getDocs, updateDoc, collection} =
+   require("firebase/firestore");
 
 const db = getFirestore();
 
@@ -89,5 +90,28 @@ async function addProgressMapping(userName, date, teamName, result) {
     console.error("Error adding progress mapping:", error);
   }
 }
+async function everyNightProgress() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = (today.getMonth() + 1).toString().padStart(2, "0");
+  const day = today.getDate().toString().padStart(2, "0");
+  const hours = today.getHours().toString().padStart(2, "0");
+  const minutes = today.getMinutes().toString().padStart(2, "0");
+  const seconds = today.getSeconds().toString().padStart(2, "0");
+  const dateTimeString = `${year}${month}${day}${hours}${minutes}${seconds}`;
 
-module.exports = {setTier, doesMappingExist, addProgressMapping};
+  const userRefs = collection(db, "users");
+  const userDocs = await getDocs(userRefs);
+  userDocs.forEach(async (userDoc) => {
+    const userName = userDoc.data().name;
+    const teamRefs = collection(db, "teams");
+    const teamDocs = await getDocs(teamRefs);
+    teamDocs.forEach(async (teamDoc) => {
+      const teamName = teamDoc.data().name;
+      await addProgressMapping(userName, dateTimeString, teamName, "fail");
+    });
+  });
+}
+
+module.exports = {setTier, doesMappingExist,
+  addProgressMapping, everyNightProgress};
