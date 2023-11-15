@@ -90,6 +90,7 @@ async function joinTeam(userName, teamName) {
       // });
       // await setTier(userName);
 
+<<<<<<< Updated upstream
       // transaction
       runTransaction(db, async (transaction) => {
         await transaction.update(userRef, {
@@ -124,6 +125,23 @@ async function joinTeam(userName, teamName) {
 
       // transfer entry deposit to team
 
+=======
+      // add user to team
+      await updateDoc(teamRef, {
+        user_refs: arrayUnion(doc(collection(db, "users"), userName)),
+        [`team_points.${userName}`]: 0,
+      });
+
+      await updateDoc(userRef, {
+        team_refs: arrayUnion(doc(collection(db, "teams"), teamName)),
+        // social_credit: currentSocialCredit - entryDeposit,
+        [`deposits.${teamName}`]: entryDeposit,
+        [`team_points.${teamName}`]: 0,
+      });
+
+      // transfer entry deposit to team
+      await transferUserTeam(userName, teamName, entryDeposit);
+>>>>>>> Stashed changes
 
       console.log(`${userName} becomes a member of team ${teamName}`);
       return true;
