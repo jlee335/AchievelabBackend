@@ -14,7 +14,6 @@
 const {onRequest} = require("firebase-functions/v2/https");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const functions = require("firebase-functions");
-
 // const {onDocumentCreated} = require("firebase-functions/v2/firestore");s
 
 // The Firebase Admin SDK to access Firestore.
@@ -46,7 +45,7 @@ const {newTeam, joinTeam} = require("./achievelab_modules/Teams");
 const {addProgressMapping, everyNightProgress} =
   require("./achievelab_modules/Progress");
 const {addChat, getChats} = require("./achievelab_modules/Chat");
-const {getUserInfo, getTeamInfo, userExist, teamExist, progressInfo} =
+const {getUserInfo, getTeamInfo, userExist, teamExist, progressInfo, getTier} =
   require("./achievelab_modules/Infos");
 const {getTopNRanking} = require("./achievelab_modules/Ranking");
 const {resetTeam} = require("./achievelab_modules/reset");
@@ -91,7 +90,7 @@ exports.newTeam = onRequest((request, response) => {
   // Call the `handleSignUp` function from the `Signup` module.
   newTeam(userName, teamName, rules, description, entryDeposit);
   // Return a JSON response.
-  response.json({result: "success"});
+  response.json({result: "team created"});
 });
 
 /* Ranking and progress */
@@ -270,6 +269,24 @@ exports.paybackManual = onRequest(async (request, response) => {
 });
 
 exports.payback = onSchedule("every monday 00:00", paybackCallback);
+
+exports.getTierAPI = onRequest(async (request, response) => {
+  const userName = request.body.userName;
+  const tier = await getTier(userName);
+  response.json({
+    "tier": tier,
+    "message": "xxxxxxxxxxxxxxxxxxxxx",
+  });
+});
+
+exports.scheduledFunction = functions.pubsub
+    .schedule("every day 22:10")
+    .timeZone("Asia/Seoul") // Set the time zone to Korea Standard Time (UTC+9)
+    .onRun(async (context) => {
+      console.log("This will be run every day at 22:10 in KST!");
+      await everyNightProgress();
+      return null;
+    });
 // Force reset all users by GET call
 exports.resetUsers = onRequest(async (request, response) => {
   paybackCallback(null);
@@ -285,11 +302,3 @@ exports.resetOneTeamTest = onRequest(async (request, response) => {
 });
 
 
-exports.scheduledFunction = functions.pubsub
-    .schedule("every day 22:30")
-    .timeZone("Asia/Seoul") // Set the time zone to Korea Standard Time (UTC+9)
-    .onRun(async (context) => {
-      console.log("This will be run every day at 22:10 in Korea Standime!");
-      await everyNightProgress();
-      return null;
-    });

@@ -15,15 +15,15 @@ async function setTier(userName) {
       score += deposit;
     }
     let tier;
-    if (score <= 100) tier = "Iron";
-    else if (score <= 200) tier = "Bronze";
-    else if (score <= 400) tier = "Silver";
-    else if (score <= 600) tier = "Gold";
-    else if (score <= 800) tier = "Platinum";
-    else if (score <= 1000) tier = "Emerald";
-    else if (score <= 1200) tier = "Diamond";
-    else if (score <= 1400) tier = "Master";
-    else if (score <= 1600) tier = "GrandMaster";
+    if (score <= 30) tier = "Iron";
+    else if (score <= 60) tier = "Bronze";
+    else if (score <= 90) tier = "Silver";
+    else if (score <= 120) tier = "Gold";
+    else if (score <= 150) tier = "Platinum";
+    else if (score <= 180) tier = "Emerald";
+    else if (score <= 210) tier = "Diamond";
+    else if (score <= 240) tier = "Master";
+    else if (score <= 270) tier = "GrandMaster";
     else tier = "Challenger";
     await updateDoc(userRef, {tier: tier});
   } else {

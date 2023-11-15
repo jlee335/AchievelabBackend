@@ -132,5 +132,12 @@ async function progressInfo(userName, teamName) {
     Point: Point,
   };
 }
+
+async function getTier(userName) {
+  const userRef = doc(db, "usrs", userName);
+  const userDoc = await getDoc(userRef);
+  const tier = userDoc.data().tier;
+  return tier;
+}
 module.exports = {progressInfo, userCredit, userTeamPoints, userDeposits,
-  teamPoints, getUserInfo, getTeamInfo, userExist, teamExist};
+  teamPoints, getUserInfo, getTeamInfo, userExist, teamExist, getTier};

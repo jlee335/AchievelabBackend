@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 const {getFirestore, doc, getDoc, getDocs, updateDoc, collection} =
    require("firebase/firestore");
-
+// const functions = require("firebase-functions");
 const db = getFirestore();
 
 const {setTier} = require("./SetTier");
@@ -90,6 +90,7 @@ async function addProgressMapping(userName, date, teamName, result) {
     console.error("Error adding progress mapping:", error);
   }
 }
+
 async function everyNightProgress() {
   const today = new Date();
   const year = today.getFullYear();
@@ -107,8 +108,8 @@ async function everyNightProgress() {
     const teamRefs = collection(db, "teams");
     const teamDocs = await getDocs(teamRefs);
     teamDocs.forEach(async (teamDoc) => {
-      const teamName = teamDoc.data().name;
-      await addProgressMapping(userName, dateTimeString, teamName, "fail");
+      const teamName = teamDocs.data().name;
+      await addProgressMapping(userName, dateTimeString, teamName, "success");
     });
   });
 }

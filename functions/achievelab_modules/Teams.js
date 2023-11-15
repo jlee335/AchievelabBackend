@@ -49,7 +49,7 @@ async function newTeam(userName, teamName, rules, description
         leader_ref: doc(collection(db, "users"), userName),
         user_refs: [doc(collection(db, "users"), userName)],
         increment: 5,
-        decrement: 2,
+        decrement: 0,
       });
       await setTier(userName);
       console.log(`${userName} created team ${teamName}`);
