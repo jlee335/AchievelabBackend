@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
-const {getFirestore, doc, getDoc, updateDoc, collection} = require("firebase/firestore");
-const functions = require('firebase-functions');
-const {extractTeamNames} = require("./Infos");
+const {getFirestore, doc, getDoc, getDocs, updateDoc, collection} =
+   require("firebase/firestore");
+// const functions = require("firebase-functions");
 const db = getFirestore();
 
 const {setTier} = require("./SetTier");
@@ -109,4 +109,5 @@ async function everyNightProgress() {
   })
 }
 
-module.exports = {setTier, doesMappingExist, addProgressMapping, everyNightProgress};
+module.exports = {setTier, doesMappingExist,
+  addProgressMapping, everyNightProgress};
