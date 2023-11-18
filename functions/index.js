@@ -270,7 +270,6 @@ exports.paybackManual = onRequest(async (request, response) => {
 });
 
 exports.payback = onSchedule("every monday 00:00", paybackCallback);
-<<<<<<< HEAD
 
 exports.getTierAPI = onRequest(async (request, response) => {
   const userName = request.body.userName;
@@ -282,16 +281,14 @@ exports.getTierAPI = onRequest(async (request, response) => {
 })
 
 exports.scheduledFunction = functions.pubsub
-  .schedule('every day 22:10')
+  .schedule('every day 22:15')
   .timeZone('Asia/Seoul') // Set the time zone to Korea Standard Time (UTC+9)
   .onRun(async (context) => {
     console.log('This will be run every day at 22:10 in Korea Standard Time!');
     await everyNightProgress();
     return null;
   });
-=======
 // Force reset all users by GET call
 exports.resetUsers = onRequest(async (request, response) => {
   paybackCallback(null);
 });
->>>>>>> d9f3f81cbd17d582d16c94e640b42b5a692fc7b4

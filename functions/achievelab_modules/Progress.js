@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 const {getFirestore, doc, getDoc, updateDoc, collection} = require("firebase/firestore");
 const functions = require('firebase-functions');
+const {extractTeamNames} = require("./Infos");
 const db = getFirestore();
 
 const {setTier} = require("./SetTier");
@@ -95,20 +96,15 @@ async function everyNightProgress() {
   const year = today.getFullYear();
   const month = (today.getMonth() + 1).toString().padStart(2, '0'); 
   const day = today.getDate().toString().padStart(2, '0');
-  const hours = today.getHours().toString().padStart(2, '0');
-  const minutes = today.getMinutes().toString().padStart(2, '0');
-  const seconds = today.getSeconds().toString().padStart(2, '0');
-  const dateTimeString = `${year}${month}${day}${hours}${minutes}${seconds}`;
+  const dateTimeString = `${year}${month}${day}`;
 
   const userRefs = collection(db, "users");
   const userDocs = await getDocs(userRefs);
   userDocs.forEach(async (userDoc) => {
     const userName = userDoc.data().name;
-    const teamRefs = collection(db, "teams");
-    const teamDocs = await getDocs(teamRefs);
-    teamDocs.forEach(async (teamDoc) => {
-      const teamName = teamDocs.data().name;
-      await addProgressMapping(userName, dateTimeString, teamName, "success");
+    const teamNames = await extractTeamNames(userDoc.data().team_refs);
+    teamNames.forEach(async (teamName) => {
+      await addProgressMapping(userName, dateTimeString, teamName, "fail");
     })
   })
 }
