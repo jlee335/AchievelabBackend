@@ -213,7 +213,12 @@ exports.progressAPI = onRequest(async (request, response) => {
   const success = request.body.isSuccess;
 
   const prevInfo = await progressInfo(userName, teamName);
-  const result = await addProgressMapping(userName, date, teamName, "success");
+  let a = "success"
+  if (!success) {
+    a = "fail"
+  }
+  const result = await addProgressMapping(userName, date, teamName, a);
+
   if (!result) {
     response.json({
       result: "fail",
